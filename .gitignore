@@ -1,0 +1,54 @@
+# Игнорируем виртуальные окружения
+venv/
+env/
+.venv/
+
+# Игнорируем кэш Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Игнорируем файлы настроек и секреты
+*.env
+*.secret
+.env
+.secret
+config.py
+
+# Игнорируем файлы IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Игнорируем логи и временные файлы
+*.log
+*.tmp
+*.bak
+
+# Игнорируем собранные дистрибутивы и установленные пакеты
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Игнорируем файлы базы данных (если используются)
+*.db
+*.sqlite3
+
+# Игнорируем Jupyter Notebook
+.ipynb_checkpoints/
+
+# Игнорируем файлы pytest
+.pytest_cache/
+
+# Игнорируем файлы coverage
+.coverage
+htmlcov/
+
+# Игнорируем файлы mypy
+.mypy_cache/
+
+# Игнор Стартовых промптов ИИ и памяти ассистента
+memory.json
+init_memory.json
