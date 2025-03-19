@@ -4,7 +4,8 @@ import datetime as dt
 
 
 async def new_text_message(user_text):
-    user_text += f"Дата сообщения: {dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}"
+    time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    user_text += f"Дата сообщения: {time}"
     
     response = await asistant.chat.completions.create(
         model="gpt-4o-mini",
@@ -127,7 +128,8 @@ async def may_be_u_want_table(user_text):
     return 0
 
 async def new_table(user_text):
-    user_text += f"Дата сообщения: {dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}"
+    time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    user_text += f"Дата сообщения: {time}"
     manager.add_user_message(user_text)
     response = await asistant.chat.completions.create(
         model="gpt-4o-mini",
@@ -145,7 +147,8 @@ async def new_table(user_text):
     df.to_excel("bot/files/table.xlsx", index=False)
     
 async def new_photo_message(text):
-    text = "@@@" + text + "Отправляю тебе информацию с чека. Необходимо найти здесь мою трату и обработать её как обычно. Дата сообщения: " + dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    text = "@@@" + text + "Отправляю тебе информацию с чека. Необходимо найти здесь мою трату и обработать её как обычно. Дата сообщения: " + time
     manager.add_user_message(text)
     response = await asistant.chat.completions.create(
         model="gpt-4o-mini",
