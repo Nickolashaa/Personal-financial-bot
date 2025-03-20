@@ -1,6 +1,7 @@
 from AI.init import asistant, manager
-import pandas as pd
+import csv
 import datetime as dt
+import xlsxwriter
 
 
 async def new_text_message(user_text):
@@ -143,8 +144,16 @@ async def new_table(user_text):
     with open("bot/files/table.csv", "w", encoding="utf-8") as f:
         f.write(gpt_text)
     
-    df = pd.read_csv("bot/files/table.csv", encoding='utf-8', delimiter=';')
-    df.to_excel("bot/files/table.xlsx", index=False)
+    workbook = xlsxwriter.Workbook("bot/files/table.xlsx")
+    worksheet = workbook.add_worksheet()
+
+    with open("bot/files/table.csv", 'r', encoding='utf-8') as f:
+        reader = csv.reader(f, delimiter=';')
+        for row_index, row in enumerate(reader):
+            for col_index, value in enumerate(row):
+                worksheet.write(row_index, col_index, value)
+
+    workbook.close()
     
 async def new_photo_message(text):
     time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
