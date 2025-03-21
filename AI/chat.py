@@ -111,7 +111,8 @@ async def new_text_message(user_text):
         "<xmp>",  # Пример текста (устаревший)
         "<br>",
         "<pre>",
-        "<code>"
+        "<code>",
+        "*"
     ]
     
     for tag in unsupported_html_tags:
@@ -123,14 +124,9 @@ async def new_text_message(user_text):
     # Возвращаем текст ответа
     return gpt_text
 
-async def may_be_u_want_table(user_text):
-    if "таблиц" in user_text.lower():
-        return 1
-    return 0
-
 async def new_table(user_text):
     time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    user_text += f"Дата сообщения: {time}"
+    user_text = "СОЗДАЙ ТАБЛИЦУ. Если ты не понимаешь, какую таблицу хочет Владислав, посмотри его последние сообщения в памяти. Таблицы должны быть в формате CSV с разделителем ;. Заголовки: Название, Категория, Подкатегория, Стоимость, Дата. Владислав может добавлять столбцы. Никакого форматирования или HTML-тегов в таблицах! Запрос пользователя: " + user_text + "Дата сообщения: " + time
     manager.add_user_message(user_text)
     response = await asistant.chat.completions.create(
         model="gpt-4o-mini",
@@ -249,7 +245,7 @@ async def new_photo_message(text):
         "<br>",
         "<pre>",
         "<code>",
-        "**"
+        "*"
     ]
     
     for tag in unsupported_html_tags:
