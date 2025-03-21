@@ -248,7 +248,8 @@ async def new_photo_message(text):
         "<xmp>",  # Пример текста (устаревший)
         "<br>",
         "<pre>",
-        "<code>"
+        "<code>",
+        "**"
     ]
     
     for tag in unsupported_html_tags:
