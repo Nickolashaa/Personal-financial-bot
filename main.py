@@ -7,7 +7,8 @@ from aiogram.client.default import DefaultBotProperties
 
 
 async def main():
-    bot = Bot(token=os.getenv("TG_TOKEN"), default=DefaultBotProperties(parse_mode="HTML"))
+    bot = Bot(token=os.getenv("TG_TOKEN"),
+              default=DefaultBotProperties(parse_mode="HTML"))
     print("Бот инициализирован")
     await dp.start_polling(bot)
 

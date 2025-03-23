@@ -1,32 +1,27 @@
-from aiogram import Router, F
+from aiogram import Router
 from aiogram.filters import CommandStart, Command
-from aiogram.types import Message, FSInputFile, CallbackQuery
+from aiogram.types import Message
 from AI.init import manager
-from AI.chat import new_text_message, new_table, new_photo_message
+from AI.chat import new_text_message, new_photo_message
 from bot.authorization import authorization
 import os
 from bot.speech_recognition_module import voice_to_text
 from bot.extract_text_from_image import extract_text_from_image
-from aiogram.fsm.state import State, StatesGroup
-from aiogram.fsm.context import FSMContext
-from bot import keyboads as kb
 
 
 router = Router()
 
-class TableResponse(StatesGroup):
-    response_text = State()
 
 @router.message(CommandStart())
 async def start(message: Message):
     if authorization(message.from_user.id):
-        await message.answer("Приветствую, Владислав!", reply_markup=kb.new_table())
+        await message.answer("Приветствую, Владислав!")
 
 @router.message(Command("clear_memory"))
 async def clear(message: Message):
     if authorization(message.from_user.id):
         manager.clear_memory()
-        await message.answer("Память очищена.", reply_markup=kb.new_table())
+        await message.answer("Память очищена.")
     
 @router.message(lambda message: message.media_group_id)
 async def handle_media_group(message: Message):
@@ -42,7 +37,7 @@ async def handle_media_group(message: Message):
             text = extract_text_from_image()
         
             gpt_text = await new_photo_message(text)
-            await message.answer(gpt_text, reply_markup=kb.new_table())
+            await message.answer(gpt_text)
             
             os.remove("bot/files/photo.png")
 
@@ -60,7 +55,7 @@ async def handle_photo(message: Message):
         text = extract_text_from_image()
         
         gpt_text = await new_photo_message(text)
-        await message.answer(gpt_text, reply_markup=kb.new_table())
+        await message.answer(gpt_text)
         
         os.remove("bot/files/photo.png")
         
@@ -78,35 +73,15 @@ async def handle_audio(message: Message):
             os.remove("bot/files/audio.ogg")
             os.remove("bot/files/audio.wav")
             gpt_text = await new_text_message(text)
-            await message.answer(gpt_text, reply_markup=kb.new_table())
+            await message.answer(gpt_text)
             
         else:
-            await message.answer("Извините, не могу разобрать вашу речь...", reply_markup=kb.new_table())
-            
-@router.message(lambda message: message.text == "Создать таблицу")         
-@router.message(Command("table"))
-async def handle_table(message: Message, state: FSMContext):
-    await message.answer("Введи запрос для создания таблицы")
-    await state.set_state(TableResponse.response_text)
-    
-@router.message(TableResponse.response_text)
-async def create_table(message: Message, state: FSMContext):
-    await message.answer("Формирую таблицу по вашему запросу...")
-    await message.bot.send_chat_action(message.chat.id, "typing")
-    await state.clear()
-    await new_table(message.text)
-    await message.bot.send_chat_action(message.chat.id, "upload_document")
-    await message.answer_document(document=FSInputFile("bot/files/table.csv"))
-    await message.bot.send_chat_action(message.chat.id, "upload_document")
-    await message.answer_document(document=FSInputFile("bot/files/table.xlsx"))
-    os.remove("bot/files/table.csv")
-    os.remove("bot/files/table.xlsx")
-    await message.answer("Таблицы готовы!", reply_markup=kb.new_table())            
+            await message.answer("Извините, не могу разобрать вашу речь...")        
             
 @router.message()
 async def handle_text(message: Message):
     if authorization(message.from_user.id):
         await message.bot.send_chat_action(message.chat.id, "typing")
         gpt_text = await new_text_message(message.text)
-        await message.answer(gpt_text, reply_markup=kb.new_table())
+        await message.answer(gpt_text)
             
