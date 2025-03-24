@@ -1,20 +1,20 @@
 from AI.init import asistant, manager
 import datetime as dt
+import json
 
 
 async def new_text_message(user_text):
     time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     user_text += f"Дата сообщения: {time}"
-    
+
     manager.add_user_message(user_text)
     response = await asistant.chat.completions.create(
         model="gpt-4o-mini",
         messages=manager.read()
     )
-        
+
     gpt_text = response.choices[0].message.content
-    
-    
+
     unsupported_html_tags = [
         "<html>", "</html>",  # Корневой тег HTML
         "<head>", "</head>",  # Заголовок документа
@@ -101,16 +101,17 @@ async def new_text_message(user_text):
         "*",  # Звездочка (не HTML-тег, но добавлена в список)
         "<u>", "</u>",  # Подчеркнутый текст
     ]
-    
+
     for tag in unsupported_html_tags:
         gpt_text = gpt_text.replace(tag, '')
-    
+
     # Добавляем ответ ассистента в менеджер
     manager.add_assistant_message(gpt_text)
-    
+
     # Возвращаем текст ответа
     return gpt_text
-    
+
+
 async def new_photo_message(text):
     time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     text += "Отправляю тебе информацию с чека. Необходимо найти здесь мою трату и обработать её как обычно. Дата сообщения: " + time
@@ -119,9 +120,9 @@ async def new_photo_message(text):
         model="gpt-4o-mini",
         messages=manager.read()
     )
-    
+
     gpt_text = response.choices[0].message.content
-    
+
     unsupported_html_tags = [
         "<html>", "</html>",  # Корневой тег HTML
         "<head>", "</head>",  # Заголовок документа
@@ -208,12 +209,37 @@ async def new_photo_message(text):
         "*",  # Звездочка (не HTML-тег, но добавлена в список)
         "<u>", "</u>",  # Подчеркнутый текст
     ]
-    
+
     for tag in unsupported_html_tags:
         gpt_text = gpt_text.replace(tag, '')
-    
+
     # Добавляем ответ ассистента в менеджер
     manager.add_assistant_message(gpt_text)
-    
+
     # Возвращаем текст ответа
     return gpt_text
+
+
+async def category_check():
+
+    response = await asistant.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": f"Вот данные: {manager.read()}. Предоставь мне все категории и подкатегории в виде словаря типа Категория: список подкатегорий. Пришли только словарь."},
+        ]
+    )
+
+    gpt_text = response.choices[0].message.content
+
+    data = json.loads(gpt_text.replace('`', '').replace('python', ''))
+
+    print(data)
+    
+    if len(data.keys()) > 7:
+        manager.add_assistant_message("ВНИМАНИЕ! Количество ваших категорий превышает 7!")
+        return "ВНИМАНИЕ! Количество ваших категорий превышает 7!"
+
+    for key, value in data.items():
+        if len(data[key]) > 7:
+            manager.add_assistant_message(f"ВНИМАНИЕ! Количество ваших подкатегорий в категории {key} превышает 7!")
+            return f"ВНИМАНИЕ! Количество ваших подкатегорий в категории {key} превышает 7!"

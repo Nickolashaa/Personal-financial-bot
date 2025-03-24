@@ -2,7 +2,7 @@ from aiogram import Router
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 from AI.init import manager
-from AI.chat import new_text_message, new_photo_message
+from AI.chat import new_text_message, new_photo_message, category_check
 from bot.authorization import authorization
 import os
 from bot.speech_recognition_module import voice_to_text
@@ -74,6 +74,9 @@ async def handle_audio(message: Message):
             os.remove("bot/files/audio.wav")
             gpt_text = await new_text_message(text)
             await message.answer(gpt_text)
+            check = category_check()
+            if check:
+                await message.answer(check)
             
         else:
             await message.answer("Извините, не могу разобрать вашу речь...")        
@@ -84,4 +87,7 @@ async def handle_text(message: Message):
         await message.bot.send_chat_action(message.chat.id, "typing")
         gpt_text = await new_text_message(message.text)
         await message.answer(gpt_text)
+        check = await category_check()
+        if check:
+            await message.answer(check)
             
