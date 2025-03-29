@@ -7,6 +7,7 @@ from bot.authorization import authorization
 import os
 from bot.speech_recognition_module import voice_to_text
 from bot.extract_text_from_image import extract_text_from_image
+import requests
 
 
 router = Router()
@@ -17,12 +18,25 @@ async def start(message: Message):
     if authorization(message.from_user.id):
         await message.answer("Приветствую, Владислав!")
 
+
 @router.message(Command("clear_memory"))
 async def clear(message: Message):
     if authorization(message.from_user.id):
         manager.clear_memory()
         await message.answer("Память очищена.")
-    
+
+
+@router.message(Command("balance"))
+async def balance(message: Message):
+    url = 'https://api.proxyapi.ru/proxyapi/balance'
+    headers = {
+        'Authorization': f'Bearer {os.getenv("AI_TOKEN")}'
+    }
+    response = requests.get(url, headers=headers)
+    data = response.json()
+    await message.answer(f"{int(data["balance"])} рублей")
+
+
 @router.message(lambda message: message.media_group_id)
 async def handle_media_group(message: Message):
     if authorization(message.from_user.id):
@@ -33,13 +47,14 @@ async def handle_media_group(message: Message):
             file_path = file.file_path
             name_file = "bot/files/photo.png"
             await message.bot.download_file(file_path, name_file)
-            
+
             text = extract_text_from_image()
-        
+
             gpt_text = await new_photo_message(text)
             await message.answer(gpt_text)
-            
+
             os.remove("bot/files/photo.png")
+
 
 @router.message(lambda message: message.photo)
 async def handle_photo(message: Message):
@@ -53,12 +68,13 @@ async def handle_photo(message: Message):
         await message.bot.download_file(file_path, name_file)
 
         text = extract_text_from_image()
-        
+
         gpt_text = await new_photo_message(text)
         await message.answer(gpt_text)
-        
+
         os.remove("bot/files/photo.png")
-        
+
+
 @router.message(lambda message: message.voice)
 async def handle_audio(message: Message):
     if authorization(message.from_user.id):
@@ -77,10 +93,11 @@ async def handle_audio(message: Message):
             check = category_check()
             if check:
                 await message.answer(check)
-            
+
         else:
-            await message.answer("Извините, не могу разобрать вашу речь...")        
-            
+            await message.answer("Извините, не могу разобрать вашу речь...")
+
+
 @router.message()
 async def handle_text(message: Message):
     if authorization(message.from_user.id):
@@ -90,4 +107,3 @@ async def handle_text(message: Message):
         check = await category_check()
         if check:
             await message.answer(check)
-            
