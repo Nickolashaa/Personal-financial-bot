@@ -34,7 +34,7 @@ async def balance(message: Message):
     }
     response = requests.get(url, headers=headers)
     data = response.json()
-    await message.answer(f"{int(data["balance"])} рублей")
+    await message.answer(f"{int(data['balance'])} рублей")
 
 
 @router.message(lambda message: message.media_group_id)
