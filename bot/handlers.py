@@ -68,6 +68,8 @@ async def handle_photo(message: Message):
         await message.bot.download_file(file_path, name_file)
 
         text = extract_text_from_image()
+        
+        print("Распознанный текст: " + text)
 
         gpt_text = await new_photo_message(text)
         await message.answer(gpt_text)
