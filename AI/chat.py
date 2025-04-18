@@ -3,6 +3,10 @@ import datetime as dt
 import json
 import os
 from dotenv import load_dotenv
+import sqlite3
+import csv
+import xlsxwriter
+
 
 
 load_dotenv()
@@ -120,9 +124,31 @@ async def new_text_message(user_text):
         gpt_text = f"По моим подсчетам у меня получилось {sum(array)}"
 
     manager.add_assistant_message(gpt_text)
-
-    # Возвращаем текст ответа
     return gpt_text
+
+
+async def create_db():
+    manager.add_user_message("Создай SQL код для добавления всех данных из твоей памяти (бери только актуальную информацию) в таблицу Finance, поля в таблице: NAME(STRING), CATEGORY(STRING), SUB_CATEGORY(STRING), PRICE(INT). Напиши только SQL запрос, ничего лишнего")
+    response = await asistant.chat.completions.create(
+        model=os.getenv("MODEL"),
+        messages=manager.read(),
+        max_tokens=1000
+    )
+
+    gpt_text = response.choices[0].message.content
+    
+    for z in "`sql":
+        gpt_text = gpt_text.replace(z, '')
+    gpt_text = gpt_text.replace('\n', ' ')
+    
+    manager.add_assistant_message(gpt_text)
+    
+    db = sqlite3.connect("db/database.db")
+    cur = db.cursor()
+    cur.execute("DELETE FROM Finance")
+    db.commit()
+    cur.execute(gpt_text)
+    db.commit()
 
 
 async def new_photo_message(text):
@@ -258,3 +284,31 @@ async def category_check():
             manager.add_assistant_message(
                 f"ВНИМАНИЕ! Количество ваших подкатегорий в категории {key} превышает 7!")
             return f"ВНИМАНИЕ! Количество ваших подкатегорий в категории {key} превышает 7!"
+
+
+async def new_table(user_text):
+    time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    user_text = "СОЗДАЙ ТАБЛИЦУ. Если ты не понимаешь, какую таблицу хочет Владислав, посмотри его последние сообщения в памяти. Таблицы должны быть в формате CSV с разделителем ;. Заголовки: Название, Категория, Подкатегория, Стоимость, Дата. Владислав может добавлять столбцы. Никакого форматирования или HTML-тегов в таблицах! Запрос пользователя: " + user_text + "Дата сообщения: " + time
+    manager.add_user_message(user_text)
+    response = await asistant.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=manager.read()
+    )
+    
+    gpt_text = response.choices[0].message.content
+    
+    gpt_text = gpt_text.replace('`', '')
+    
+    with open("bot/files/table.csv", "w", encoding="utf-8") as f:
+        f.write(gpt_text)
+    
+    workbook = xlsxwriter.Workbook("bot/files/table.xlsx")
+    worksheet = workbook.add_worksheet()
+
+    with open("bot/files/table.csv", 'r', encoding='utf-8') as f:
+        reader = csv.reader(f, delimiter=';')
+        for row_index, row in enumerate(reader):
+            for col_index, value in enumerate(row):
+                worksheet.write(row_index, col_index, value)
+
+    workbook.close()
